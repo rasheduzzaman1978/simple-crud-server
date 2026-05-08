@@ -1,56 +1,96 @@
 require('dotenv').config();
+
 const express = require('express');
 const cors = require('cors');
-const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+
+const {
+  MongoClient,
+  ServerApiVersion,
+  ObjectId
+} = require('mongodb');
 
 const app = express();
+
 const port = process.env.PORT || 5000;
 
 
+// ======================
 // MIDDLEWARE
+// ======================
+
 app.use(cors());
+
 app.use(express.json());
 
 
+// ======================
 // MONGODB URI
+// ======================
+
 const uri = process.env.MONGODB_URI;
 
 
-// CREATE CLIENT
+// ======================
+// MONGODB CLIENT
+// ======================
+
 const client = new MongoClient(uri, {
+
   serverApi: {
     version: ServerApiVersion.v1,
     strict: true,
     deprecationErrors: true,
   },
+
 });
 
 
+// ======================
 // ROOT ROUTE
+// ======================
+
 app.get('/', (req, res) => {
-  res.send('Simple CRUD server is serving!');
+
+  res.send('Simple CRUD server is running successfully!');
+
 });
 
+
+// ======================
+// MAIN FUNCTION
+// ======================
 
 async function run() {
 
   try {
 
+    // CONNECT DATABASE
     await client.connect();
 
+    console.log('Connected to MongoDB successfully!');
+
+
+    // DATABASE
     const db = client.db('simplecrud');
 
+
+    // COLLECTIONS
     const userCollection = db.collection('users');
+
+    const resultCollection = db.collection('results');
+
+
+    // ==================================================
+    // USER ROUTES
+    // ==================================================
 
 
     // GET ALL USERS
     app.get('/users', async (req, res) => {
 
-      const cursor = userCollection.find();
+      const users = await userCollection.find().toArray();
 
-      const result = await cursor.toArray();
-
-      res.send(result);
+      res.send(users);
 
     });
 
@@ -58,15 +98,28 @@ async function run() {
     // GET SINGLE USER
     app.get('/users/:id', async (req, res) => {
 
-      const id = req.params.id;
+      try {
 
-      const query = {
-        _id: new ObjectId(id)
-      };
+        const id = req.params.id;
 
-      const user = await userCollection.findOne(query);
+        const query = {
+          _id: new ObjectId(id)
+        };
 
-      res.send(user);
+        const user = await userCollection.findOne(query);
+
+        res.send(user);
+
+      }
+
+      catch (error) {
+
+        res.status(500).send({
+          error: true,
+          message: error.message
+        });
+
+      }
 
     });
 
@@ -74,13 +127,26 @@ async function run() {
     // CREATE USER
     app.post('/users', async (req, res) => {
 
-      const newUser = req.body;
+      try {
 
-      console.log('User to be inserted', newUser);
+        const newUser = req.body;
 
-      const result = await userCollection.insertOne(newUser);
+        console.log('User to be inserted:', newUser);
 
-      res.send(result);
+        const result = await userCollection.insertOne(newUser);
+
+        res.send(result);
+
+      }
+
+      catch (error) {
+
+        res.status(500).send({
+          error: true,
+          message: error.message
+        });
+
+      }
 
     });
 
@@ -88,25 +154,47 @@ async function run() {
     // UPDATE USER
     app.put('/users/:id', async (req, res) => {
 
-      const id = req.params.id;
+      try {
 
-      const updatedUser = req.body;
+        const id = req.params.id;
 
-      const query = {
-        _id: new ObjectId(id)
-      };
+        const updatedUser = req.body;
 
-      const updateDoc = {
-        $set: {
-          name: updatedUser.name,
-          email: updatedUser.email,
-          role: updatedUser.role,
-        }
-      };
+        const query = {
+          _id: new ObjectId(id)
+        };
 
-      const result = await userCollection.updateOne(query, updateDoc);
+        const updateDoc = {
 
-      res.send(result);
+          $set: {
+
+            name: updatedUser.name,
+
+            email: updatedUser.email,
+
+            role: updatedUser.role,
+
+          }
+
+        };
+
+        const result = await userCollection.updateOne(
+          query,
+          updateDoc
+        );
+
+        res.send(result);
+
+      }
+
+      catch (error) {
+
+        res.status(500).send({
+          error: true,
+          message: error.message
+        });
+
+      }
 
     });
 
@@ -114,15 +202,108 @@ async function run() {
     // DELETE USER
     app.delete('/users/:id', async (req, res) => {
 
-      const id = req.params.id;
+      try {
 
-      const query = {
-        _id: new ObjectId(id)
-      };
+        const id = req.params.id;
 
-      const result = await userCollection.deleteOne(query);
+        const query = {
+          _id: new ObjectId(id)
+        };
 
-      res.send(result);
+        const result = await userCollection.deleteOne(query);
+
+        res.send(result);
+
+      }
+
+      catch (error) {
+
+        res.status(500).send({
+          error: true,
+          message: error.message
+        });
+
+      }
+
+    });
+
+
+    // ==================================================
+    // RESULT ROUTES
+    // ==================================================
+
+
+    // GET ALL RESULTS
+    app.get('/results', async (req, res) => {
+
+      try {
+
+        const results = await resultCollection.find().toArray();
+
+        res.send(results);
+
+      }
+
+      catch (error) {
+
+        res.status(500).send({
+          error: true,
+          message: error.message
+        });
+
+      }
+
+    });
+
+    // GET SINGLE RESULT
+      app.get('/results/:id', async (req, res) => {
+
+        try {
+
+          const id = req.params.id;
+
+          const query = {
+            _id: new ObjectId(id)
+          };
+
+          const result = await resultCollection.findOne(query);
+
+          res.send(result);
+
+        }
+
+        catch (error) {
+
+          res.status(500).send({
+            error: true,
+            message: error.message
+          });
+
+        }
+
+      });
+
+    // CREATE RESULTS
+    app.post('/results', async (req, res) => {
+
+      try {
+
+        const resultsData = req.body;
+
+        const result = await resultCollection.insertMany(resultsData);
+
+        res.send(result);
+
+      }
+
+      catch (error) {
+
+        res.status(500).send({
+          error: true,
+          message: error.message
+        });
+
+      }
 
     });
 
@@ -130,7 +311,7 @@ async function run() {
     // PING DATABASE
     await client.db('admin').command({ ping: 1 });
 
-    console.log('Connected to MongoDB successfully!');
+    console.log('Pinged MongoDB deployment successfully!');
 
   }
 
@@ -143,12 +324,16 @@ async function run() {
 }
 
 
+// RUN SERVER
 run().catch(console.dir);
 
 
+// ======================
 // SERVER LISTEN
+// ======================
+
 app.listen(port, () => {
 
-  console.log(`Simple CRUD server is running on port ${port}`);
+  console.log(`Server is running on port ${port}`);
 
 });
