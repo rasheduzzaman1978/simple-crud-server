@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
@@ -12,8 +13,7 @@ app.use(express.json());
 
 
 // MONGODB URI
-const uri =
-  'mongodb://simpleCrudUser:Bd4p70wUlfRD8QUI@ac-k2g5w5n-shard-00-00.vsx8urx.mongodb.net:27017,ac-k2g5w5n-shard-00-01.vsx8urx.mongodb.net:27017,ac-k2g5w5n-shard-00-02.vsx8urx.mongodb.net:27017/?ssl=true&replicaSet=atlas-vx1jfd-shard-0&authSource=admin&appName=Cluster0';
+const uri = process.env.MONGODB_URI;
 
 
 // CREATE CLIENT
